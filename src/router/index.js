@@ -1,8 +1,8 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
+import store from '@/store';
 import HomeView from '../views/HomeView.vue';
-import UserRegister from '../views/register/UserRegister.vue';
-import UserLogin from '../views/login/UserLogin.vue';
+import userRouter from './module/user';
 
 Vue.use(VueRouter);
 
@@ -20,22 +20,29 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue'),
   },
-  {
-    path: '/register',
-    name: 'register',
-    component: UserRegister,
-  },
-  {
-    path: '/login',
-    name: 'login',
-    component: UserLogin,
-  },
+  ...userRouter,
 ];
 
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  // 判断是否需要登录
+  if (to.meta.auth) {
+    // 判断是否登录
+    if (store.state.userModule.token) {
+      // 这里还要判断token的有效性
+      next();
+    } else {
+      // 跳转登录
+      router.push({ name: 'login' });
+    }
+  } else {
+    next();
+  }
 });
 
 export default router;
