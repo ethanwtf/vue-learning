@@ -25,7 +25,7 @@
               <b-form-input
                 v-model="$v.user.password.$model"
                 type="password"
-                placeholder="输入密码）"
+                placeholder="输入密码"
                 :state="validateState('password')"
               ></b-form-input>
               <b-form-invalid-feedback :state="validateState('password')">
@@ -48,6 +48,7 @@
 <script>
 
 import { required, minLength } from 'vuelidate/lib/validators';
+import { mapActions } from 'vuex';
 // import customValidator from '@/helper/validator.js';
 const telephoneValidator = (value) => /^1[3|4|5|7]\d{9}$/.test(value);
 export default {
@@ -61,15 +62,33 @@ export default {
     };
   },
   methods: {
+    ...mapActions('userModule', { userLogin: 'login' }),
     validateState(name) {
       // 这里是es6 解构赋值
       const { $dirty, $error } = this.$v.user[name];
       return $dirty ? !$error : null;
     },
-    login() {
-      this.validation = true;
 
-      console.log('login');
+    login() {
+      // 验证数据
+      // this.validation = true;
+      this.$v.user.$touch();
+      if (this.$v.user.$anyError) {
+        return;
+      }
+      // 请求api
+      this.userLogin(this.user).then(() => {
+        // 跳转主页
+        this.$router.replace({ name: 'home' });
+      }).catch((err) => {
+        this.$bvToast.toast(err.response.data.msg, {
+          title: '数据验证错误',
+          variant: 'danger',
+          solid: true,
+        });
+      });
+
+      console.log('register');
     },
   },
   validations: {
