@@ -59,8 +59,8 @@
 <script>
 
 import { required, minLength } from 'vuelidate/lib/validators';
-import storageService from '@/service/storageService';
 import userService from '@/service/userService';
+import { mapMutations, mapState } from 'vuex';
 
 // import customValidator from '@/helper/validator.js';
 const telephoneValidator = (value) => /^1[3|4|5|7]\d{9}$/.test(value);
@@ -78,6 +78,7 @@ export default {
     };
   },
   methods: {
+    ...mapMutations('userModule', ['SET_TOKEN', 'SET_USERINFO']),
     validateState(name) {
       // 这里是es6 解构赋值
       const { $dirty, $error } = this.$v.user[name];
@@ -94,13 +95,14 @@ export default {
       userService.register(this.user).then((res) => {
         // 保存token
         console.log(res.data);
-        storageService.set(storageService.USER_TOKEN, res.data.data.token);
-        userService.info().then((response) => {
-          // 保存用户信息
-          storageService.set(storageService.USER_INFO, JSON.stringify(response.data.data.user));
-          // 跳转主页
-          this.$router.replace({ name: 'home' });
-        });
+        this.SET_TOKEN(res.data.data.token);
+        userService.info();
+        return userService.info();
+      }).then((response) => {
+        // 保存用户信息
+        this.SET_USERINFO(response.data.data.user);
+        // 跳转主页
+        this.$router.replace({ name: 'home' });
       }).catch((err) => {
         console.log('err:', err.response.data.msg);
         this.$bvToast.toast(err.response.data.msg, {

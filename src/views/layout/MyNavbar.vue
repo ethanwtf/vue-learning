@@ -42,15 +42,16 @@
   </div>
 </template>
 <script>
-import storageService from '@/service/storageService';
+
+import { mapState } from 'vuex';
 
 export default {
-  computed: {
+  computed: mapState({
     userInfo() {
-      return JSON.parse(storageService.get(storageService.USER_INFO));
+      return this.$store.state.userModule.userInfo;
     },
 
-  },
+  }),
 
 };
 </script>
